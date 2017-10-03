@@ -1,0 +1,8 @@
+
+trigger = TriggerDagRunOperator(task_id='trigger_dagrun',
+                                 trigger_dag_id="{{TRIGGER_DAG_ID}}_{{REGION}}",
+                                 python_callable=conditionally_trigger,
+                                 params={
+                                        'dependant_task_name':{{ DEPENDANT_TASK_NAME }}},
+                                 dag=dag)
+

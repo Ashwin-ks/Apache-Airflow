@@ -1,0 +1,7 @@
+
+{{task_id}} = BashOperator(
+    task_id='{{task_id}}',
+    bash_command='python2.7 {{script_path}}/{{ Bash_command }}',
+    dag=dag
+)
+

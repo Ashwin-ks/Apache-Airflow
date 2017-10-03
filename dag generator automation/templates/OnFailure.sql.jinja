@@ -1,0 +1,2 @@
+Update EIS_T.A_ETL_TABLE_AUDIT  set TBL_ETL_STATUS='Failed', TBL_ETL_END_TMST= current_date()
+Where table_name=upper('{{actual_table_name}}') and TBL_ETL_STATUS='In Progress';

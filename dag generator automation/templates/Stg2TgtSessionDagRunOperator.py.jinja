@@ -1,0 +1,17 @@
+def conditionally_trigger(context, dag_run_obj):
+    """This function decides whether or not to Trigger the remote DAG"""
+ 
+    session = settings.Session()
+    success_runs = session.query(TaskInstance).filter(TaskInstance.state == State.SUCCESS).all()
+    var_loc_flag = context['params']['dependant_task_name'] in [dag_run.task_id for dag_run in success_runs]
+    if (var_loc_flag):
+        return dag_run_obj
+
+trigger = TriggerDagRunOperator(task_id='trigger_dagrun',
+                                 trigger_dag_id="{{TRIGGER_DAG_ID}}",
+                                 python_callable=conditionally_trigger,
+                                 params={
+                                        'dependant_task_name':{{ DEPENDANT_TASK_NAME }}},
+                                 dag=dag)
+
+

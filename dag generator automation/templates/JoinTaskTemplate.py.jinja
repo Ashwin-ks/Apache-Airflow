@@ -1,0 +1,6 @@
+
+# This is the join node
+join_task_{{ join_index }} = DummyOperator(
+    task_id='concentrator_task_{{ join_index }}',
+    dag=dag)
+

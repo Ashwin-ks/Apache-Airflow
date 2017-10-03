@@ -1,0 +1,19 @@
+
+run_controller = airflow.operators.RunControlOperator(
+    task_id='run_controller',
+    condition_eval_code="{{ condition_eval_code }}",
+    on_continue_task_id="task_{{ on_continue_task_id }}",
+    on_skip_task_id="skipped_all",
+    code_type="sql",
+    sf_conn_id="snowflake",
+    dag=dag)
+
+
+skipped_all = DummyOperator(
+    task_id='skipped_all',
+    dag=dag)
+
+run_controller.set_downstream(skipped_all)
+
+skipped_all.set_downstream(finished_all)
+

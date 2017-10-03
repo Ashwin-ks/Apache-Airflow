@@ -1,0 +1,12 @@
+from airflow.operators import BashOperator
+exp_user=Variable.get("export_user")
+exp_host=Variable.get("export_host")
+
+export_bash_command='ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no {USER}@{HOST} "sh /home/{USER}/scripts/fullload/digenexport_full.ksh {{SUBSCRIBERID}} {{DATASETID}}"'.format(USER=exp_user,HOST=exp_host)
+
+{{task_id}} = BashOperator(
+    task_id='{{task_id}}',
+    bash_command=export_bash_command,
+    dag=dag
+)
+

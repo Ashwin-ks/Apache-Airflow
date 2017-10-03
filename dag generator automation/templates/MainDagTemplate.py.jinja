@@ -1,0 +1,63 @@
+#!/usr/bin/env python
+import botocore
+from airflow import DAG
+from datetime import datetime, timedelta
+import logging
+from airflow.operators import PythonOperator, DummyOperator, SnowFlakeOperator
+from airflow.hooks import SnowFlakeHook
+import boto3
+from airflow.utils.email import send_email
+import time, re
+from airflow.models import Variable
+import airflow
+from airflow.operators.dagrun_operator import TriggerDagRunOperator
+from airflow import settings
+from airflow.models import TaskInstance
+from airflow.utils.state import State
+start_date = {{ start_date }}
+task_concurrency=15
+max_simultaneous_run = 1
+schedule_interval= {{ schedule_interval }}
+support_email_id=""
+
+default_args = {
+    'owner': "{{ owner }}",
+    'depends_on_past': False,
+    'start_date': start_date,
+    'email': [support_email_id],
+    'email_on_failure': False,
+    'email_on_retry': False,
+    'retries': 0,
+    'retry_delay': timedelta(minutes=1),
+    'wait_for_downstream': False,
+}
+
+dag = DAG(
+    '{{ dag_name }}', default_args=default_args, schedule_interval=schedule_interval,
+    max_active_runs=max_simultaneous_run,
+    concurrency=task_concurrency, start_date=start_date)
+
+
+success_audit_sql="""{{ success_audit_sql }}"""
+
+failure_audit_sql="""{{ failure_audit_sql }}"""
+
+def success_callback():
+    snowflake_auditor = SnowFlakeHook(conn_id="snowflake")
+    success_audit_sql_list= success_audit_sql.split(";")
+    for sql in success_audit_sql_list :
+        snowflake_auditor.run(autocommit=True, sql=sql)
+
+def failure_callback(context):
+    snowflake_auditor = SnowFlakeHook(conn_id="snowflake")
+    failure_audit_sql_list= failure_audit_sql.split(";")
+    for sql in failure_audit_sql_list :
+        snowflake_auditor.run(autocommit=True, sql=sql)
+
+
+# This is the end node
+finished_all = PythonOperator(
+    task_id='finished_all',
+    python_callable=success_callback,
+    trigger_rule="one_success",
+    dag=dag)

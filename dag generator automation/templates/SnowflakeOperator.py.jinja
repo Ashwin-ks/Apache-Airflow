@@ -1,0 +1,11 @@
+
+#This tasks runs {{ sql_file }}
+{{ task_id }} = SnowFlakeOperator(
+    task_id='{{ task_id }}',
+    sql="{{ sql_file }} ",
+    conn_id="{{ conn_id }}",
+    dag=dag,
+    on_failure_callback=failure_callback,
+    parameters={{ parameters }}
+)
+

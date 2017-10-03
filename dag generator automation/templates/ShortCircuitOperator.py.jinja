@@ -1,0 +1,43 @@
+def check_exec_date(id):
+    session = settings.Session()
+    exec_date = session.query(func.max(DagRun.execution_date)).filter(DagRun.dag_id == id).scalar()
+    return exec_date
+
+def check_dag_state(id):
+    session = settings.Session()
+    status = session.query(DagRun.state).filter(DagRun.dag_id == id,DagRun.execution_date==check_exec_date(id)).scalar()
+    return status
+	
+def check_dep_dag_state(*args,**kwargs):
+    try:
+        session = settings.Session()
+	logging.info('Checking dependant dags status')
+	exec_dates = [check_exec_date(dag) for dag in {{DEPENDANT_DAG_ID}}]
+	#if all(dag_date.date()==kwargs['execution_date'].date() for dag_date in exec_dates):
+	dag_state_all=[check_dag_state(dag) for dag in {{DEPENDANT_DAG_ID}}]
+	if all(state=="success" for state in dag_state_all):
+            logging.info(dag_state_all)
+	    return True
+	elif any(state=="running" for state in dag_state_all):
+	    while any(state=="running" for state in dag_state_all):
+	        logging.info('Checking running dags status after 5 minutes')
+		time.sleep(300)
+		dag_state_all=[check_dag_state(dag) for dag in {{DEPENDANT_DAG_ID}}]
+		logging.info(dag_state_all)   
+                if any(state=="failed" for state in dag_state_all):
+		    logging.info('dependant dags scenario not met,skipping downstream tasks')
+		    return False
+		elif all(state=="success" for state in dag_state_all):
+		    return True
+    except:
+	    return False
+		
+    session.commit()
+    session.close()
+	
+check_prev_dag_state = ShortCircuitOperator(
+         task_id='check_dag_state_prev',
+         provide_context=True,
+         python_callable=check_dep_dag_state,
+         dag=dag)
+

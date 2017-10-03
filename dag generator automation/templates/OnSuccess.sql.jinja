@@ -1,0 +1,8 @@
+UPDATE  EIS_T.A_ETL_TABLE_AUDIT
+set NBR_OF_SOURCE_ROWS=(Select count(*) from {{dbname}}.{{tgt_table_name}} where ROWLASTUPDTFK = (select ETL_TABLE_AUDIT_PK from EIS_T.A_ETL_TABLE_AUDIT
+where table_name=upper('{{actual_table_name}}') and TBL_ETL_STATUS='In Progress'))
+where table_name=upper('{{actual_table_name}}') and TBL_ETL_STATUS='In Progress';
+
+Update EIS_T.A_ETL_TABLE_AUDIT
+set TBL_ETL_STATUS=  'Completed', TBL_ETL_END_TMST= current_date()
+Where table_name=upper('{{actual_table_name}}')  and TBL_ETL_STATUS='In Progress';

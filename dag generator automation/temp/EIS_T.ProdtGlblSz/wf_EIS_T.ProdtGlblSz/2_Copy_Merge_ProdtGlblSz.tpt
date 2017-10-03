@@ -1,0 +1,31 @@
+/*===================================================== 
+Query Name  : 1_Copy_Merge_ProdtGlblSz.tpt
+Source      : File exported from TD using Export FW
+Target Table: EIS_T.ProdtGlblSz
+Purpose     : Load data into EIS_T.ProdtGlblSz
+=======================================================
+Change History
+Created on  : 05/02/2017
+Updated on  :  
+Created by  : TCS
+=======================================================*/
+TRUNCATE TABLE EIS_T.ProdtGlblSz;
+USE SCHEMA EIS_T; 
+COPY INTO EIS_T.ProdtGlblSz ( ProdtCd ,SzCd ,SzTypeCd ,GTIN ,SzSortSeqNbr ,ProdtGlblSzStatCd ,ActvInd ,RowInsAdtFK ,RowLastUpdtFK ,SrcTmstmp ,RcrdChkSum ,OrigPhysSrcSysSK ) FROM (
+    SELECT
+        $1  AS ProdtCd
+      , $2  AS SzCd
+      , $3  AS SzTypeCd
+      , $4  AS GTIN
+      , $5  AS SzSortSeqNbr
+      , $6  AS ProdtGlblSzStatCd
+      , $7  AS ActvInd
+      , $8  AS RowInsAdtFK
+      , $9  AS RowLastUpdtFK
+      , $10 AS SrcTmstmp
+      , $11 AS RcrdChkSum
+      , $12 AS OrigPhysSrcSysSK
+    FROM
+        @REV_LOGISTICS_EIS_T/ProdtGlblSz/
+)
+FILE_FORMAT = 'EXPORT_FILE_YYYY';
